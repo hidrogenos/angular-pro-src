@@ -1,45 +1,42 @@
-import { Component } from '@angular/core';
+import { Component,ViewChild,ComponentRef, ViewContainerRef, ComponentFactoryResolver, AfterContentInit } from '@angular/core';
 
 import { User } from './auth-form/auth-form.interface';
+import { AuthFormComponent } from './auth-form/auth-form.component';
 
 @Component({
   selector: 'app-root',
   template: `
     <div>
-      <auth-form 
-        (submitted)="createUser($event)">
-        <h3>Create account</h3>
-        <button type="submit">
-          Join us
-        </button>
-      </auth-form>
-      <auth-form 
-        (submitted)="loginUser($event)">
-        <h3>Login</h3>
-        <auth-remember
-          (checked)="rememberUser($event)">
-        </auth-remember>
-        <button type="submit">
-          Login
-        </button>
-      </auth-form>
+    <button (click)="destroyComponent()">
+      Destroy
+    </button>
+      <div #entry></div>
     </div>
   `
 })
-export class AppComponent {
+export class AppComponent implements AfterContentInit {
 
-  rememberMe: boolean = false;
+  component: ComponentRef<AuthFormComponent>;
 
-  rememberUser(remember: boolean){
-    this.rememberMe = remember;
+  @ViewChild('entry', {read: ViewContainerRef}) entry: ViewContainerRef;
+
+  constructor(
+    private resolver: ComponentFactoryResolver
+  ){}
+
+  ngAfterContentInit(){
+    const authFormFactory = this.resolver.resolveComponentFactory(AuthFormComponent);
+    this.component = this.entry.createComponent(authFormFactory);
+    this.component.instance.title = 'create account';
+    this.component.instance.submitted.subscribe(this.loginUser)
   }
 
-  createUser(user: User) {
-    console.log('Create account', user);
+  destroyComponent(){
+    this.component.destroy();
   }
 
   loginUser(user: User) {
-    console.log('Login', user, this.rememberMe);
+    console.log('Login', user);
   }
 
 }
